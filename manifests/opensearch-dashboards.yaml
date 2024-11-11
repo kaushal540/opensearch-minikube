@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch-dashboards
+  namespace: opensearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch-dashboards
+  template:
+    metadata:
+      labels:
+        app: opensearch-dashboards
+    spec:
+      containers:
+        - name: opensearch-dashboards
+          image: opensearchproject/opensearch-dashboards:2.9.0
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          env:
+            - name: OPENSEARCH_HOSTS
+              value: "https://opensearch-service.opensearch.svc.cluster.local:9200"
+            - name: OPENSEARCH_SSL_CERTIFICATE_AUTHORITIES
+              value: "/usr/share/opensearch-dashboards/config/certificates/ca.pem"
+            - name: OPENSEARCH_SSL_CERTIFICATE
+              value: "/usr/share/opensearch-dashboards/config/certificates/dashboards.pem"
+            - name: OPENSEARCH_SSL_KEY
+              value: "/usr/share/opensearch-dashboards/config/certificates/dashboards.key"
+            - name: OPENSEARCH_SSL_VERIFICATION_MODE
+              value: "none"  # Optional for testing; remove in production
+            - name: OPENSEARCH_USERNAME
+              value: "admin"  # replace with your username
+            - name: OPENSEARCH_PASSWORD
+              value: "admin"  # replace with your password
+          ports:
+            - containerPort: 5601
+          volumeMounts:
+            - name: opensearch-certs
+              mountPath: /usr/share/opensearch-dashboards/config/certificates
+      volumes:
+        - name: opensearch-certs
+          secret:
+            secretName: opensearch-certificates
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch-dashboards-service
+  namespace: opensearch
+spec:
+  type: NodePort
+  ports:
+    - port: 5601
+      targetPort: 5601
+      nodePort: 30002
+  selector:
+    app: opensearch-dashboards

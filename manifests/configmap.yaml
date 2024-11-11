@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opensearch-config
+  namespace: opensearch
+data:
+  opensearch.yml: |
+    cluster.name: os-cluster
+    network.host: 0.0.0.0
+    discovery.seed_hosts: opensearch
+
+    plugins.security.allow_unsafe_democertificates: true
+    plugins.security.ssl.http.enabled: true
+    plugins.security.ssl.http.pemtrustedcas_filepath: certificates/ca.pem
+    plugins.security.ssl.transport.enabled: true
+    plugins.security.ssl.transport.pemtrustedcas_filepath: certificates/ca.pem
+    plugins.security.ssl.transport.enforce_hostname_verification: false
+
+    plugins.security.ssl.transport.pemkey_filepath: certificates/opensearch.key
+    plugins.security.ssl.transport.pemcert_filepath: certificates/opensearch.pem
+    plugins.security.ssl.http.pemkey_filepath: certificates/opensearch.key
+    plugins.security.ssl.http.pemcert_filepath: certificates/opensearch.pem
+
+    plugins.security.authcz.admin_dn:
+      - 'CN=opensearch.local,O=ExampleOrg,L=SanFrancisco,ST=CA,C=US'
+      - 'CN=dashboards.local,O=ExampleOrg,L=SanFrancisco,ST=CA,C=US' 
+
+
+    plugins.security.nodes_dn:
+      - 'CN=opensearch,O=UN,L=UN,ST=UN,C=UN'
+      - 'CN=dashboards,O=UN,L=UN,ST=UN,C=UN'

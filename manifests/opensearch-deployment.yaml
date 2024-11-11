@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch
+  namespace: opensearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+        - name: opensearch
+          image: opensearchproject/opensearch:2.9.0
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+          env:
+            - name: discovery.type
+              value: single-node
+          ports:
+            - containerPort: 9300
+              name: transport
+            - containerPort: 9200
+              name: http
+          volumeMounts:
+            - mountPath: /usr/share/opensearch/config/opensearch.yml
+              subPath: opensearch.yml
+              name: opensearch-config
+            - mountPath: /usr/share/opensearch/data
+              name: opensearch-data
+            - mountPath: /usr/share/opensearch/config/certificates
+              name: opensearch-certs
+              readOnly: true
+      volumes:
+        - name: opensearch-config
+          configMap:
+            name: opensearch-config
+        - name: opensearch-data
+          persistentVolumeClaim:
+            claimName: opensearch-pvc
+        - name: opensearch-certs
+          secret:
+            secretName: opensearch-certificates
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch-service
+  namespace: opensearch
+spec:
+  selector:
+    app: opensearch
+  type: NodePort
+  ports:
+    - name: http
+      port: 9200
+      nodePort: 30001
+    - name: transport
+      port: 9300
