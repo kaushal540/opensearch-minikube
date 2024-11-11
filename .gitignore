@@ -140,6 +140,12 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# base64 encodings
+*.base64
+
+# certificates
+certificates/
+
 # mypy
 .mypy_cache/
 .dmypy.json
